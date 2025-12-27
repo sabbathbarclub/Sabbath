@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "title": "NEON NIGHTS OPENING",
+        "description": "Experience the grand opening with DJ Vhal.",
+        "date": "2025-12-31T22:00:00Z",
+        "image": "https://images.unsplash.com/photo-1570654621852-9dd24b7fa923?q=80&w=800&auto=format&fit=crop"
+    },
+    {
+        "id": 2,
+        "title": "TECHNO BUNKER",
+        "description": "Underground vibes all night long.",
+        "date": "2026-01-07T23:00:00Z",
+        "image": "https://images.unsplash.com/photo-1574341908865-ec12a024c8c2?q=80&w=800&auto=format&fit=crop"
+    },
+    {
+        "id": 3,
+        "title": "RETRO WAVE GLOW",
+        "description": "80s synthwave party.",
+        "date": "2026-01-14T21:00:00Z",
+        "image": "https://images.unsplash.com/photo-1545128485-c400e7702796?q=80&w=800&auto=format&fit=crop"
+    }
+]
