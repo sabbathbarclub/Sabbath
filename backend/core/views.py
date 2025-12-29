@@ -4,11 +4,15 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
-from .models import Event, Reservation, PromoCode, Menu
-from .serializers import EventSerializer, ReservationSerializer, PromoCodeSerializer, MenuSerializer
+from .models import Event, Reservation, PromoCode, Menu, PromoCampaign, PromoTicket
+from .serializers import EventSerializer, ReservationSerializer, PromoCodeSerializer, MenuSerializer, PromoCampaignSerializer, PromoTicketSerializer
 
 class EventList(generics.ListCreateAPIView):
     queryset = Event.objects.all().order_by('-date')
+    serializer_class = EventSerializer
+
+class EventDetail(generics.RetrieveDestroyAPIView):
+    queryset = Event.objects.all()
     serializer_class = EventSerializer
 
 class PromoCodeList(generics.ListCreateAPIView):
@@ -22,6 +26,41 @@ class MenuList(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         # Override to ensure only Image is returned or handle generic creation
         return super().post(request, *args, **kwargs)
+
+class PromoCampaignList(generics.ListCreateAPIView):
+    queryset = PromoCampaign.objects.filter(is_active=True).order_by('-created_at')
+    serializer_class = PromoCampaignSerializer
+
+class PromoCampaignDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = PromoCampaign.objects.all()
+    serializer_class = PromoCampaignSerializer
+
+class PromoTicketCreate(generics.CreateAPIView):
+    queryset = PromoTicket.objects.all()
+    serializer_class = PromoTicketSerializer
+
+    def create(self, request, *args, **kwargs):
+        dni = request.data.get('dni')
+        campaign_id = request.data.get('campaign')
+        
+        # Prevent double dipping in same campaign
+        if PromoTicket.objects.filter(dni=dni, campaign_id=campaign_id).exists():
+             existing = PromoTicket.objects.get(dni=dni, campaign_id=campaign_id)
+             serializer = self.get_serializer(existing)
+             return Response(serializer.data, status=status.HTTP_200_OK)
+
+        response = super().create(request, *args, **kwargs)
+        
+        if response.status_code == status.HTTP_201_CREATED:
+            from .models import PromoCampaign
+            try:
+                campaign = PromoCampaign.objects.get(pk=campaign_id)
+                campaign.manual_claims += 1
+                campaign.save()
+            except PromoCampaign.DoesNotExist:
+                pass
+                
+        return response
 
 class ReservationCreate(generics.CreateAPIView):
     queryset = Reservation.objects.all()
@@ -57,9 +96,25 @@ class ReservationCreate(generics.CreateAPIView):
 
 @api_view(['POST'])
 def validate_qr(request):
-    qr_id = request.data.get('qr_id')
+    qr_id_raw = request.data.get('qr_id')
+    
+    # Check if it's a Promo Ticket
+    if str(qr_id_raw).startswith("PROMO:"):
+        promo_id = qr_id_raw.split("PROMO:")[1]
+        try:
+            ticket = PromoTicket.objects.get(id=promo_id)
+            if ticket.is_used:
+                 return Response({'status': 'ALREADY_USED', 'message': 'Promo ya canjeada.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            ticket.is_used = True
+            ticket.save()
+            return Response({'status': 'VALID', 'message': f"Benficio: {ticket.campaign.current_benefit}", 'event': 'CAMPAÑA EXCLUSIVA'})
+        except PromoTicket.DoesNotExist:
+            return Response({'status': 'INVALID', 'message': 'Promo Ticket inválido.'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Normal Reservation Logic
     try:
-        reservation = Reservation.objects.get(id=qr_id)
+        reservation = Reservation.objects.get(id=qr_id_raw)
         if reservation.is_validated:
              return Response({'status': 'ALREADY_USED', 'message': 'This ticket has already been used.'}, status=status.HTTP_400_BAD_REQUEST)
         

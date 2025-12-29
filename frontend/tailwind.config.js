@@ -7,12 +7,13 @@ export default {
     theme: {
         extend: {
             colors: {
-                neonPurple: '#A855F7',
+                neonPurple: '#B46DF8',
                 neonPink: '#EC4899',
                 glassBlack: 'rgba(0, 0, 0, 0.7)',
             },
             fontFamily: {
                 sans: ['Inter', 'sans-serif'],
+                gothic: ['Cinzel', 'serif'],
             },
             backgroundImage: {
                 'hero-pattern': "url('/bg.svg')",
