@@ -15,7 +15,14 @@ const StaffLogin = () => {
                 navigate('/staff-dashboard');
             })
             .catch(err => {
-                setError('Credenciales inválidas');
+                console.error("Login Error:", err);
+                if (err.response && err.response.status === 403) {
+                    setError('Error de seguridad (CSRF/CORS). Intenta recargar.');
+                } else if (err.response && err.response.status === 401) {
+                    setError('Credenciales inválidas');
+                } else {
+                    setError('Error de conexión con el servidor');
+                }
             });
     };
 
