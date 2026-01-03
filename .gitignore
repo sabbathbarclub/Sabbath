@@ -62,7 +62,7 @@ pnpm-debug.log*
 /frontend/dist/
 /frontend/build/
 /frontend/coverage/
-/frontend/src/.env.production/
+/frontend/.env.production/
 # Testing
 /frontend/cypress/videos/
 /frontend/cypress/screenshots/

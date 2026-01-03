@@ -146,6 +146,11 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOW_ALL_ORIGINS = True
+CSRF_TRUSTED_ORIGINS = [
+    "https://sabbath-rhxv.onrender.com",
+    "https://sabbath-kblj.vercel.app", 
+    "https://sabbath-kblj-ng3a-sabbaths-projects-15a90f4d.vercel.app"
+]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
