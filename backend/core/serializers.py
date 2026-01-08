@@ -16,24 +16,17 @@ class PromoCampaignSerializer(serializers.ModelSerializer):
 class PromoTicketSerializer(serializers.ModelSerializer):
     campaign_title = serializers.ReadOnlyField(source='campaign.title')
     benefit = serializers.ReadOnlyField(source='campaign.current_benefit')
-    qr_base64 = serializers.SerializerMethodField()
+    qr_code = serializers.SerializerMethodField() # Override default file field
 
     class Meta:
         model = PromoTicket
-        fields = ['id', 'campaign', 'campaign_title', 'benefit', 'name', 'dni', 'qr_code', 'qr_base64', 'is_used', 'created_at']
+        fields = ['id', 'campaign', 'campaign_title', 'benefit', 'name', 'dni', 'qr_code', 'is_used', 'created_at']
         read_only_fields = ['qr_code', 'is_used']
 
-    def get_qr_base64(self, obj):
-        if not obj.qr_code:
-            return None
-        try:
-            import base64
-            obj.qr_code.open('rb')
-            data = base64.b64encode(obj.qr_code.read()).decode('utf-8')
-            obj.qr_code.close()
-            return f"data:image/png;base64,{data}"
-        except Exception:
-            return None
+    def get_qr_code(self, obj):
+        # Build dynamic URL: /api/qr/PROMO:uuid/
+        # Use relative path so it works on any domain
+        return f"/api/qr/PROMO:{obj.id}/"
 
 class PromoCodeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -52,10 +45,16 @@ class EventSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ReservationSerializer(serializers.ModelSerializer):
+    qr_code = serializers.SerializerMethodField() # Override default file field
+
     class Meta:
         model = Reservation
         fields = '__all__'
         read_only_fields = ('id', 'qr_code', 'created_at', 'is_validated')
+
+    def get_qr_code(self, obj):
+        # Build dynamic URL: /api/qr/uuid/
+        return f"/api/qr/{obj.id}/"
 
     def validate_birth_date(self, value):
         if not value:

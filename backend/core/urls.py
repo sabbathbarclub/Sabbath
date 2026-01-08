@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import EventList, ReservationCreate, validate_qr, staff_login, toggle_event, PromoCodeList, MenuList, PromoCampaignList, PromoTicketCreate, PromoCampaignDetail, health_check
+from .views import EventList, ReservationCreate, validate_qr, staff_login, toggle_event, PromoCodeList, MenuList, PromoCampaignList, PromoTicketCreate, PromoCampaignDetail, health_check, serve_dynamic_qr
 from .views import EventDetail
 
 urlpatterns = [
@@ -17,4 +17,7 @@ urlpatterns = [
     path('campaigns/', PromoCampaignList.as_view(), name='campaign-list'),
     path('campaigns/<int:pk>/', PromoCampaignDetail.as_view(), name='campaign-detail'),
     path('campaigns/ticket/', PromoTicketCreate.as_view(), name='campaign-ticket-create'),
+
+    # Dynamic QR
+    path('qr/<str:qr_id>/', serve_dynamic_qr, name='dynamic-qr'),
 ]

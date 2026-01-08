@@ -163,3 +163,43 @@ def toggle_event(request, pk):
 @permission_classes([AllowAny])
 def health_check(request):
     return Response({'status': 'OK', 'system': 'Sabbath Backend', 'version': '1.0.0'})
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def serve_dynamic_qr(request, qr_id):
+    """
+    Generates a QR code on the fly for the given qr_id string.
+    Usage: /api/qr/<qr_id>/
+    """
+    import qrcode
+    from django.http import HttpResponse
+    from io import BytesIO
+
+    # Logic to distinguish PROMO vs Reservation
+    # If it starts with PROMO:, treat as such.
+    # Actually we just encode precisely what is passed in qr_id, 
+    # but we need to decode it if it was safely encoded in URL.
+    # For now, let's assume the ID is passed directly.
+    # Note: Promo IDs in DB are "PROMO:uuid". 
+    # But URLs might be cleaner if we just pass the UUID and a type param?
+    # No, to keep it compatible with existing scanner logic (`PROMO:` prefix),
+    # we should encode exactly that string.
+    
+    data = qr_id
+    # If it's a promo ticket, the ID passed in URL might need the prefix added if not present?
+    # No, let's make the serializer build the full string "PROMO:uuid" or just "uuid" 
+    # and we encode THAT.
+    
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(data)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffer = BytesIO()
+    img.save(buffer, format='PNG')
+    return HttpResponse(buffer.getvalue(), content_type="image/png")
