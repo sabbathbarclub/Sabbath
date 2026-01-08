@@ -1,7 +1,12 @@
 import axios from 'axios';
 
+const apiUrl = import.meta.env.VITE_API_URL;
+console.log("--- DEBUG API CONFIG ---");
+console.log("VITE_API_URL (env):", apiUrl);
+console.log("Using Fallback?:", !apiUrl);
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/',
+    baseURL: apiUrl || 'http://127.0.0.1:8000/api/',
 });
 
 api.interceptors.request.use(config => {
