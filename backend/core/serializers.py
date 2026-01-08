@@ -25,8 +25,13 @@ class PromoTicketSerializer(serializers.ModelSerializer):
 
     def get_qr_code(self, obj):
         # Build dynamic URL: /api/qr/PROMO:uuid/
-        # Use relative path so it works on any domain
-        return f"/api/qr/PROMO:{obj.id}/"
+        # Use request.build_absolute_uri to ensure it's a full URL (https://backend...)
+        # This is CRITICAL for Vercel -> Render communication
+        request = self.context.get('request')
+        path = f"/api/qr/PROMO:{obj.id}/"
+        if request:
+            return request.build_absolute_uri(path)
+        return path # Fallback
 
 class PromoCodeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -54,7 +59,11 @@ class ReservationSerializer(serializers.ModelSerializer):
 
     def get_qr_code(self, obj):
         # Build dynamic URL: /api/qr/uuid/
-        return f"/api/qr/{obj.id}/"
+        request = self.context.get('request')
+        path = f"/api/qr/{obj.id}/"
+        if request:
+            return request.build_absolute_uri(path)
+        return path # Fallback
 
     def validate_birth_date(self, value):
         if not value:
