@@ -32,6 +32,11 @@ class MenuList(generics.ListCreateAPIView):
         # Override to ensure only Image is returned or handle generic creation
         return super().post(request, *args, **kwargs)
 
+class MenuDetail(generics.RetrieveDestroyAPIView):
+    queryset = Menu.objects.all()
+    serializer_class = MenuSerializer
+    permission_classes = [IsAdminUser]
+
 class PromoCampaignList(generics.ListCreateAPIView):
     queryset = PromoCampaign.objects.filter(is_active=True).order_by('-created_at')
     serializer_class = PromoCampaignSerializer

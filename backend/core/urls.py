@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import EventList, ReservationCreate, validate_qr, staff_login, toggle_event, toggle_menu, PromoCodeList, MenuList, PromoCampaignList, PromoTicketCreate, PromoCampaignDetail, health_check, serve_dynamic_qr
+from .views import EventList, ReservationCreate, validate_qr, staff_login, toggle_event, toggle_menu, PromoCodeList, MenuList, PromoCampaignList, PromoTicketCreate, PromoCampaignDetail, health_check, serve_dynamic_qr, MenuDetail
 from .views import EventDetail
 
 urlpatterns = [
@@ -11,6 +11,7 @@ urlpatterns = [
     path('staff-login/', staff_login, name='staff-login'),
     path('events/<int:pk>/toggle/', toggle_event, name='event-toggle'),
     path('menus/', MenuList.as_view(), name='menu-list'),
+    path('menus/<int:pk>/', MenuDetail.as_view(), name='menu-detail'),
     path('menus/<int:pk>/toggle/', toggle_menu, name='menu-toggle'),
     path('promocodes/', PromoCodeList.as_view(), name='promocode-list'),
     
