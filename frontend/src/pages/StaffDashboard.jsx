@@ -9,12 +9,11 @@ registerLocale('es', es);
 
 const StaffDashboard = () => {
     const [activeTab, setActiveTab] = useState('events');
-    const [events, setEvents] = useState([]);
-    const [promos, setPromos] = useState([]);
+    const [menus, setMenus] = useState([]); // [NEW]
 
     // Forms
     const [newEvent, setNewEvent] = useState({ title: '', description: '', date: '', capacity: 100 });
-    const [eventImageUrl, setEventImageUrl] = useState(''); // Changed from file to URL string
+    const [eventImageUrl, setEventImageUrl] = useState('');
     const [newPromo, setNewPromo] = useState({ title: '', current_benefit: '1 Shot Gratis', limit: 100 });
     const [menuUrl, setMenuUrl] = useState('');
 
@@ -23,11 +22,11 @@ const StaffDashboard = () => {
 
     // UX States
     const [isLoading, setIsLoading] = useState(false);
-    const [notification, setNotification] = useState(null); // { type: 'success'|'error', msg: '' }
+    const [notification, setNotification] = useState(null);
 
     // Delete Modal States
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [deleteType, setDeleteType] = useState(null); // 'event' or 'promo'
+    const [deleteType, setDeleteType] = useState(null);
     const [itemToDelete, setItemToDelete] = useState(null);
 
     // Edit Modal States (Promo)
@@ -36,63 +35,21 @@ const StaffDashboard = () => {
     useEffect(() => {
         loadEvents();
         loadPromos();
+        loadMenus(); // [NEW]
     }, []);
 
-    // Clear notification after 3s
-    useEffect(() => {
-        if (notification) {
-            const timer = setTimeout(() => setNotification(null), 3000);
-            return () => clearTimeout(timer);
-        }
-    }, [notification]);
+    // ... (notification effect)
 
     const loadEvents = () => api.get('events/').then(res => setEvents(res.data)).catch(console.error);
     const loadPromos = () => api.get('campaigns/').then(res => setPromos(res.data)).catch(console.error);
+    const loadMenus = () => api.get('menus/').then(res => setMenus(res.data)).catch(console.error); // [NEW]
 
-    const handleCreateEvent = (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        // Send JSON payload with URL
-        const payload = { ...newEvent, image: eventImageUrl };
-
-        api.post('events/', payload).then(() => {
-            loadEvents();
-            setNewEvent({ title: '', description: '', date: '', capacity: 100 });
-            setEventImageUrl('');
-            setIsLoading(false);
-            setNotification({ type: 'success', msg: '🔥 Ritual creado con éxito' });
-        }).catch(err => {
-            console.error(err);
-            setIsLoading(false);
-            setNotification({ type: 'error', msg: 'Error al crear evento' });
-        });
-    };
-
-    const handleCreatePromo = (e) => {
-        e.preventDefault();
-        api.post('campaigns/', newPromo).then(() => {
-            loadPromos();
-            setNewPromo({ title: '', current_benefit: '1 Shot Gratis', limit: 100 });
-            setNotification({ type: 'success', msg: '💎 Campaña creada' });
-        });
-    };
-
-    const handleUpdatePromo = (e) => {
-        e.preventDefault();
-        if (!editingPromo) return;
-        api.put(`campaigns/${editingPromo.id}/`, editingPromo).then(() => {
-            loadPromos();
-            setEditingPromo(null);
-            setNotification({ type: 'success', msg: '✨ Campaña actualizada' });
-        }).catch(err => {
-            console.error(err);
-            setNotification({ type: 'error', msg: 'Error al actualizar' });
-        });
-    };
+    // ... (create event/promo handlers)
 
     const handleUploadMenu = () => {
         if (!menuUrl) return;
         api.post('menus/', { image: menuUrl, is_active: true }).then(() => {
+            loadMenus(); // Refresh list
             setNotification({ type: 'success', msg: '📜 Carta actualizada (Link)' });
             setMenuUrl('');
         }).catch(() => setNotification({ type: 'error', msg: 'Error al actualizar carta' }));
@@ -101,6 +58,17 @@ const StaffDashboard = () => {
     const toggleEvent = (id) => {
         api.post(`events/${id}/toggle/`).then(loadEvents).catch(() => alert('Error'));
     };
+
+    const toggleMenu = (id) => {
+        api.post(`menus/${id}/toggle/`).then(() => {
+            loadMenus();
+            setNotification({ type: 'success', msg: '📜 Visibilidad actualizada' });
+        }).catch(() => setNotification({ type: 'error', msg: 'Error al cambiar estado' }));
+    };
+
+    // ... (delete handlers)
+
+    // ... (QR logic)
 
     const requestDelete = (type, id) => {
         setDeleteType(type);
@@ -321,28 +289,54 @@ const StaffDashboard = () => {
                 )}
 
                 {/* MENU TAB */}
+                {/* MENU TAB */}
                 {activeTab === 'carta' && (
-                    <div className="max-w-xl mx-auto glass p-10 rounded-xl text-center">
-                        <h3 className="text-2xl font-bold mb-6 text-neonPurple">ACTUALIZAR CARTA</h3>
-                        <div className="mb-6">
-                            <label className="block text-left text-xs uppercase text-gray-500 mb-2">Enlace de Google Drive (PDF)</label>
-                            <input
-                                type="url"
-                                className="w-full bg-black/50 p-4 rounded text-sm border border-gray-700 text-neonPurple focus:border-neonPurple focus:outline-none"
-                                placeholder="https://drive.google.com/..."
-                                value={menuUrl}
-                                onChange={e => setMenuUrl(e.target.value)}
-                            />
-                            <p className="text-[10px] text-gray-500 mt-2 text-left">
-                                Asegúrate que el enlace tenga permisos públicos ("Cualquiera con el enlace").
-                            </p>
+                    <div className="max-w-4xl mx-auto space-y-8">
+                        {/* LIST OF MENUS */}
+                        <div className="grid gap-4">
+                            {menus.map(m => (
+                                <div key={m.id} className={`glass p-4 rounded-xl flex justify-between items-center border ${m.is_active ? 'border-green-500/50' : 'border-gray-800'}`}>
+                                    <div className="flex items-center gap-4 overflow-hidden">
+                                        <div className={`w-3 h-3 rounded-full flex-shrink-0 ${m.is_active ? 'bg-green-500 shadow-[0_0_10px_lime]' : 'bg-red-500'}`}></div>
+                                        <div className="truncate">
+                                            <a href={m.image} target="_blank" rel="noreferrer" className="text-neonPurple hover:text-white transition-colors underline truncate block max-w-xs md:max-w-md">
+                                                {m.image}
+                                            </a>
+                                            <p className="text-[10px] text-gray-500">{new Date(m.created_at).toLocaleString()}</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => toggleMenu(m.id)}
+                                            className={`px-4 py-1 text-xs rounded font-bold border ${m.is_active ? 'border-red-500 text-red-500 hover:bg-red-500 hover:text-white' : 'border-green-500 text-green-500 hover:bg-green-500 hover:text-black'}`}
+                                        >
+                                            {m.is_active ? 'OCULTAR' : 'MOSTRAR'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                        <button
-                            onClick={handleUploadMenu}
-                            className="px-8 py-3 bg-white text-black font-bold tracking-widest hover:bg-neonPurple hover:text-white transition-all rounded w-full"
-                        >
-                            ACTUALIZAR ENLACE
-                        </button>
+
+                        {/* UPLOAD NEW */}
+                        <div className="glass p-10 rounded-xl text-center border-t border-gray-800">
+                            <h3 className="text-xl font-bold mb-4 text-neonPurple">SUBIR NUEVA CARTA</h3>
+                            <div className="mb-6">
+                                <label className="block text-left text-xs uppercase text-gray-500 mb-2">Enlace de Google Drive (PDF)</label>
+                                <input
+                                    type="url"
+                                    className="w-full bg-black/50 p-4 rounded text-sm border border-gray-700 text-neonPurple focus:border-neonPurple focus:outline-none"
+                                    placeholder="https://drive.google.com/..."
+                                    value={menuUrl}
+                                    onChange={e => setMenuUrl(e.target.value)}
+                                />
+                            </div>
+                            <button
+                                onClick={handleUploadMenu}
+                                className="px-8 py-3 bg-white text-black font-bold tracking-widest hover:bg-neonPurple hover:text-white transition-all rounded w-full"
+                            >
+                                ACTUALIZAR ENLACE
+                            </button>
+                        </div>
                     </div>
                 )}
 

@@ -159,6 +159,20 @@ def toggle_event(request, pk):
     except Event.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def toggle_menu(request, pk):
+    try:
+        menu = Menu.objects.get(pk=pk)
+        menu.is_active = not menu.is_active
+        menu.save()
+        # Fetch updated status of all menus might be useful, or just return this one.
+        # Since logic disables others, the frontend might want 
+        # to refresh the whole list or we just confirm this one is active.
+        return Response({'status': 'OK', 'is_active': menu.is_active})
+    except Menu.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def health_check(request):
