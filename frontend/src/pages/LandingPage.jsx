@@ -35,12 +35,12 @@ const LandingPage = () => {
 
     useEffect(() => {
         // Fetch Menu
-        api.get('menus/').then(res => {
+        api.get(`menus/?t=${Date.now()}`).then(res => {
             if (res.data.length > 0) setMenuUrl(res.data[0].image);
         }).catch(err => console.log("No menu found"));
 
         // Fetch Events
-        api.get('events/')
+        api.get(`events/?t=${Date.now()}`)
             .then(res => setEvents(res.data))
             .catch(err => {
                 console.log("API Error", err);
@@ -48,7 +48,7 @@ const LandingPage = () => {
             });
 
         // Fetch Active Campaigns
-        api.get('campaigns/').then(res => setPromos(res.data)).catch(console.error);
+        api.get(`campaigns/?t=${Date.now()}`).then(res => setPromos(res.data)).catch(console.error);
     }, []);
 
     // Scroll Reveal Observer
