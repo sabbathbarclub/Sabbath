@@ -153,8 +153,17 @@ CSRF_TRUSTED_ORIGINS = [
     "https://sabbath-rhxv.onrender.com",
     "https://sabbath-kblj.vercel.app", 
     "https://sabbath-kblj-ng3a-sabbaths-projects-15a90f4d.vercel.app",
-    "https://sabbath-kblj7ng3a-sabbaths-projects-15a90f4d.vercel.app"
+    "https://sabbath-kblj7ng3a-sabbaths-projects-15a90f4d.vercel.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173"
 ]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+}

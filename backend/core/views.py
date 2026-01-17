@@ -20,8 +20,13 @@ class PromoCodeList(generics.ListCreateAPIView):
     serializer_class = PromoCodeSerializer
 
 class MenuList(generics.ListCreateAPIView):
-    queryset = Menu.objects.filter(is_active=True).order_by('-created_at')
     serializer_class = MenuSerializer
+
+    def get_queryset(self):
+        # Staff sees everything, public sees only active
+        if self.request.user.is_staff:
+            return Menu.objects.all().order_by('-created_at')
+        return Menu.objects.filter(is_active=True).order_by('-created_at')
 
     def post(self, request, *args, **kwargs):
         # Override to ensure only Image is returned or handle generic creation

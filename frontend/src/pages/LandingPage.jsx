@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import api from '../api';
-import mockEvents from '../mockEvents.json';
+// import mockEvents from '../mockEvents.json';
 import Marquee from '../components/Marquee';
 
 const LandingPage = () => {
@@ -38,18 +38,13 @@ const LandingPage = () => {
         api.get('menus/').then(res => {
             if (res.data.length > 0) setMenuUrl(res.data[0].image);
         }).catch(err => console.log("No menu found"));
+
+        // Fetch Events
         api.get('events/')
-            .then(res => {
-                // Use mock data if API returns empty
-                if (res.data.length === 0) {
-                    setEvents(mockEvents);
-                } else {
-                    setEvents(res.data);
-                }
-            })
+            .then(res => setEvents(res.data))
             .catch(err => {
-                console.log("API Error, using mock data", err);
-                setEvents(mockEvents);
+                console.log("API Error", err);
+                setEvents([]);
             });
 
         // Fetch Active Campaigns
@@ -201,48 +196,66 @@ const LandingPage = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                        {events.map((event, index) => (
-                            <div key={event.id} className="group relative">
-                                <div className="absolute inset-0 bg-gradient-to-r from-neonPurple to-neonPink rounded-2xl blur opacity-0 group-hover:opacity-75 transition-opacity duration-500"></div>
-                                <div className="relative bg-[#0a0a0a] border border-gray-800 hover:border-transparent rounded-2xl overflow-hidden h-full flex flex-col transition-all duration-300 transform group-hover:-translate-y-2">
-                                    <div className="h-64 overflow-hidden relative">
-                                        <div className="absolute inset-0 bg-neonPurple/20 opacity-0 group-hover:opacity-100 transition-opacity z-10 mix-blend-overlay"></div>
-                                        <img
-                                            src={getDriveDirectLink(event.image)}
-                                            alt={event.title}
-                                            referrerPolicy="no-referrer"
-                                            className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 gray-scale group-hover:grayscale-0"
-                                            loading="lazy"
-                                        />
-                                    </div>
-                                    <div className="p-8 relative flex-grow flex flex-col">
-                                        <div className="text-xs text-neonPurple font-bold tracking-widest mb-2">
-                                            {new Date(event.date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+                        {events.length > 0 ? (
+                            events.map((event, index) => (
+                                <div key={event.id} className="group relative">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-neonPurple to-neonPink rounded-2xl blur opacity-0 group-hover:opacity-75 transition-opacity duration-500"></div>
+                                    <div className="relative bg-[#0a0a0a] border border-gray-800 hover:border-transparent rounded-2xl overflow-hidden h-full flex flex-col transition-all duration-300 transform group-hover:-translate-y-2">
+                                        <div className="h-64 overflow-hidden relative">
+                                            <div className="absolute inset-0 bg-neonPurple/20 opacity-0 group-hover:opacity-100 transition-opacity z-10 mix-blend-overlay"></div>
+                                            <img
+                                                src={getDriveDirectLink(event.image)}
+                                                alt={event.title}
+                                                referrerPolicy="no-referrer"
+                                                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 gray-scale group-hover:grayscale-0"
+                                                loading="lazy"
+                                            />
                                         </div>
-                                        <h3 className="text-2xl font-bold mb-4 group-hover:text-neonPink transition-colors">{event.title}</h3>
-                                        <p className="text-gray-400 text-sm mb-6 line-clamp-2">{event.description}</p>
+                                        <div className="p-8 relative flex-grow flex flex-col">
+                                            <div className="text-xs text-neonPurple font-bold tracking-widest mb-2">
+                                                {new Date(event.date).toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })}
+                                            </div>
+                                            <h3 className="text-2xl font-bold mb-4 group-hover:text-neonPink transition-colors">{event.title}</h3>
+                                            <p className="text-gray-400 text-sm mb-6 line-clamp-2">{event.description}</p>
 
-                                        <div className="mt-auto">
-                                            {event.is_active && (event.reservations_count < event.capacity) ? (
-                                                <button
-                                                    onClick={() => setSelectedEvent(event)}
-                                                    className="w-full py-4 border border-white/10 group-hover:bg-neonPurple group-hover:border-neonPurple group-hover:text-white transition-all duration-300 uppercase tracking-widest text-xs font-bold rounded-xl"
-                                                >
-                                                    RESERVAR ACCESO
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    disabled
-                                                    className="w-full py-4 border border-red-900/30 text-red-500 cursor-not-allowed uppercase tracking-widest text-xs font-bold bg-red-900/10 rounded-xl"
-                                                >
-                                                    {!event.is_active ? 'CERRADO' : 'SOLD OUT'}
-                                                </button>
-                                            )}
+                                            <div className="mt-auto">
+                                                {event.is_active && (event.reservations_count < event.capacity) ? (
+                                                    <button
+                                                        onClick={() => setSelectedEvent(event)}
+                                                        className="w-full py-4 border border-white/10 group-hover:bg-neonPurple group-hover:border-neonPurple group-hover:text-white transition-all duration-300 uppercase tracking-widest text-xs font-bold rounded-xl"
+                                                    >
+                                                        RESERVAR ACCESO
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        disabled
+                                                        className="w-full py-4 border border-red-900/30 text-red-500 cursor-not-allowed uppercase tracking-widest text-xs font-bold bg-red-900/10 rounded-xl"
+                                                    >
+                                                        {!event.is_active ? 'CERRADO' : 'SOLD OUT'}
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                            ))
+                        ) : (
+                            <div className="md:col-span-3 flex flex-col items-center justify-center text-center py-20 relative overflow-hidden rounded-3xl border border-white/5 bg-white/5 backdrop-blur-sm">
+                                <div className="absolute inset-0 bg-gradient-to-r from-neonPurple/10 to-neonPink/10 animate-pulse"></div>
+                                <div className="relative z-10 p-10">
+                                    <div className="text-6xl mb-6 opacity-80 animate-bounce-slow">🤫</div>
+                                    <h3 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tighter">
+                                        PLANEANDO LA <span className="text-transparent bg-clip-text bg-gradient-to-r from-neonPurple to-neonPink">PRÓXIMA EXPERIENCIA</span>
+                                    </h3>
+                                    <p className="text-gray-400 text-lg md:text-xl tracking-widest uppercase mb-8">
+                                        ¿Estás listo para lo que viene?
+                                    </p>
+                                    <div className="inline-block px-8 py-3 rounded-full border border-neonPurple/30 text-neonPurple bg-neonPurple/5 text-sm font-bold tracking-[0.2em] uppercase">
+                                        Coming Soon
+                                    </div>
+                                </div>
                             </div>
-                        ))}
+                        )}
                     </div>
                 </div>
             </section>
