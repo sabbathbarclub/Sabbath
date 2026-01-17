@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import DatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { es } from 'date-fns/locale/es';
+import { es } from 'date-fns/locale';
 import api from '../api';
 
 registerLocale('es', es);
