@@ -18,7 +18,7 @@ const Navbar = () => {
         <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled || isOpen ? 'bg-black/90 py-3 border-b border-neonPurple/30' : 'bg-transparent py-6'}`}>
             <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
                 <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="z-50 relative group">
-                    <img src="https://lh3.googleusercontent.com/d/1DmOJyuJfjy69eOAeqFVty-4bnvxH0QKT" alt="SÀBBATH" className="h-12 w-auto object-contain filter brightness-100 hover:brightness-125 transition-all duration-300" />
+                    <img src="https://lh3.googleusercontent.com/d/1GzgFkjbj5SPEXvVe78znSaXml3ICnGB_" alt="SÀBBATH"className="h-12 w-auto object-contain filter brightness-100 hover:brightness-125 transition-all duration-300"/>
                 </Link>
 
                 {/* Mobile Menu Button */}
