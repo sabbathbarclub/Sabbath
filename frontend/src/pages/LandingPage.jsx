@@ -152,7 +152,7 @@ const LandingPage = () => {
 
                 <div className="relative z-10 max-w-4xl mx-auto animate-fade-in">
                     <h2 className="text-neonPurple tracking-[1em] text-sm md:text-xl mb-4 uppercase">Bienvenidos al vórtice</h2>
-                    <img src="https://lh3.googleusercontent.com/d/1JUsJhmRSdgFgPGcb5jJyAXCkXlYLi8Ag" alt="SÀBBATH" className="h-24 md:h-48 object-contain mx-auto mb-6 filter brightness-125 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] animate-pulse-slow" />
+                    <img src="https://lh3.googleusercontent.com/d/1px0FfwDm0GEmH8qI-RzU8_4jZM3q9UQo" alt="SÀBBATH" className="h-24 md:h-48 object-contain mx-auto mb-6 filter brightness-125 drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] animate-pulse-slow" />
                     <p className="text-xl md:text-2xl text-gray-300 mb-10 font-light tracking-wide max-w-2xl mx-auto">
                         Santuario del Sonido. <br /> Donde la noche cobra vida.
                     </p>
