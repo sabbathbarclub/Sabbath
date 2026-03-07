@@ -44,10 +44,18 @@ class MenuSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class EventSerializer(serializers.ModelSerializer):
-    reservations_count = serializers.IntegerField(source='reservations.count', read_only=True)
+    # Uses annotated reservations_count from view queryset (avoids N+1).
+    # Falls back to .count() when instance has no annotation (e.g. create response).
+    reservations_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Event
         fields = '__all__'
+
+    def get_reservations_count(self, obj):
+        if hasattr(obj, 'reservations_count') and obj.reservations_count is not None:
+            return obj.reservations_count
+        return obj.reservations.count()
 
 class ReservationSerializer(serializers.ModelSerializer):
     qr_code = serializers.SerializerMethodField() # Override default file field

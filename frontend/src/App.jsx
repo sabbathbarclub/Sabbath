@@ -3,10 +3,12 @@ import LandingPage from './pages/LandingPage';
 import StaffLogin from './pages/StaffLogin';
 import StaffDashboard from './pages/StaffDashboard';
 import Navbar from './components/Navbar';
-
 import PromoPage from './pages/PromoPage';
+import { useKeepAlive } from './hooks/useKeepAlive';
 
 function App() {
+  useKeepAlive();
+
   return (
     <Router>
       <div className="min-h-screen bg-black text-white relative">

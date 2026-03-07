@@ -3,17 +3,30 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser
 from django.contrib.auth import authenticate
+from django.db.models import Count
 from rest_framework.authtoken.models import Token
 from .models import Event, Reservation, PromoCode, Menu, PromoCampaign, PromoTicket
 from .serializers import EventSerializer, ReservationSerializer, PromoCodeSerializer, MenuSerializer, PromoCampaignSerializer, PromoTicketSerializer
 
+
+def _events_queryset():
+    """Queryset with reservations_count annotation to avoid N+1 queries."""
+    return Event.objects.annotate(reservations_count=Count('reservations')).order_by('-date')
+
+
 class EventList(generics.ListCreateAPIView):
-    queryset = Event.objects.all().order_by('-date')
+    queryset = _events_queryset()
     serializer_class = EventSerializer
 
+    def get_queryset(self):
+        return _events_queryset()
+
+
 class EventDetail(generics.RetrieveDestroyAPIView):
-    queryset = Event.objects.all()
     serializer_class = EventSerializer
+
+    def get_queryset(self):
+        return _events_queryset()
 
 class PromoCodeList(generics.ListCreateAPIView):
     queryset = PromoCode.objects.all()
@@ -186,7 +199,27 @@ def toggle_menu(request, pk):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def health_check(request):
-    return Response({'status': 'OK', 'system': 'Sabbath Backend', 'version': '1.0.0'})
+    """
+    Health check endpoint for uptime monitors (UptimeRobot) and keep-alive pings.
+    Verifies database connectivity; returns 503 if DB is unreachable so monitors
+    can detect degraded state.
+    """
+    from django.db import connection
+
+    try:
+        connection.ensure_connection()
+    except Exception:
+        return Response(
+            {'status': 'ERROR', 'database': 'unreachable', 'system': 'Sabbath Backend'},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    return Response({
+        'status': 'OK',
+        'system': 'Sabbath Backend',
+        'version': '1.0.0',
+        'database': 'ok',
+    })
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

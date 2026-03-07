@@ -104,6 +104,12 @@ DATABASES = {
     }
 }
 
+# Reuse DB connections in production (PostgreSQL) to reduce overhead.
+# CONN_MAX_AGE=0 disables pooling for SQLite; use 60s for Postgres on Render.
+_use_postgres = 'postgresql' in str(os.getenv('DB_ENGINE', ''))
+if _use_postgres:
+    DATABASES["default"]["CONN_MAX_AGE"] = 60
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

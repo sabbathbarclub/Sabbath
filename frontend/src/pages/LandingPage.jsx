@@ -4,8 +4,15 @@ import api from '../api';
 // import mockEvents from '../mockEvents.json';
 import Marquee from '../components/Marquee';
 
+/** Max retries for events fetch (cold start / transient failures). */
+const EVENTS_FETCH_RETRIES = 2;
+/** Delay (ms) before each retry. */
+const RETRY_DELAY_MS = 2000;
+
 const LandingPage = () => {
     const [events, setEvents] = useState([]);
+    const [eventsLoading, setEventsLoading] = useState(true);
+    const [eventsError, setEventsError] = useState(null);
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [formData, setFormData] = useState({
         first_name: '',
@@ -23,6 +30,25 @@ const LandingPage = () => {
     // Media Rotation Logic: 0 = Video, 1 = Image 1, 2 = Image 2
     const [mediaIndex, setMediaIndex] = useState(0);
 
+    const fetchEvents = (retryCount = 0) => {
+        setEventsError(null);
+        setEventsLoading(true);
+        api.get(`events/?t=${Date.now()}`)
+            .then(res => {
+                setEvents(res.data);
+                setEventsLoading(false);
+            })
+            .catch(err => {
+                if (retryCount < EVENTS_FETCH_RETRIES) {
+                    setTimeout(() => fetchEvents(retryCount + 1), RETRY_DELAY_MS);
+                } else {
+                    setEventsError(true);
+                    setEventsLoading(false);
+                    setEvents([]);
+                }
+            });
+    };
+
     useEffect(() => {
         let timer;
         if (mediaIndex === 1) {
@@ -37,18 +63,12 @@ const LandingPage = () => {
         // Fetch Menu
         api.get(`menus/?t=${Date.now()}`).then(res => {
             if (res.data.length > 0) setMenuUrl(res.data[0].image);
-        }).catch(err => console.log("No menu found"));
+        }).catch(() => {});
 
-        // Fetch Events
-        api.get(`events/?t=${Date.now()}`)
-            .then(res => setEvents(res.data))
-            .catch(err => {
-                console.log("API Error", err);
-                setEvents([]);
-            });
+        fetchEvents();
 
         // Fetch Active Campaigns
-        api.get(`campaigns/?t=${Date.now()}`).then(res => setPromos(res.data)).catch(console.error);
+        api.get(`campaigns/?t=${Date.now()}`).then(res => setPromos(res.data)).catch(() => {});
     }, []);
 
     // Scroll Reveal Observer
@@ -65,7 +85,7 @@ const LandingPage = () => {
         reveals.forEach(el => observer.observe(el));
 
         return () => reveals.forEach(el => observer.unobserve(el));
-    }, [events, promos, menuUrl]); // Re-run when content loads
+    }, [events, promos, menuUrl, eventsLoading]); // Re-run when content loads
 
     const handleBook = (e) => {
         e.preventDefault();
@@ -196,8 +216,23 @@ const LandingPage = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                        {events.length > 0 ? (
-                            events.map((event, index) => (
+                        {eventsLoading ? (
+                            <div className="md:col-span-3 flex flex-col items-center justify-center py-20">
+                                <div className="w-12 h-12 border-2 border-neonPurple/50 border-t-neonPurple rounded-full animate-spin mb-6"></div>
+                                <p className="text-gray-400 tracking-widest uppercase">Cargando eventos...</p>
+                            </div>
+                        ) : eventsError ? (
+                            <div className="md:col-span-3 flex flex-col items-center justify-center text-center py-20 rounded-3xl border border-red-900/30 bg-red-900/5">
+                                <p className="text-gray-300 mb-6">No se pudieron cargar los eventos. El servidor puede estar iniciando.</p>
+                                <button
+                                    onClick={() => fetchEvents()}
+                                    className="px-8 py-3 bg-neonPurple text-white font-bold tracking-widest hover:bg-neonPink transition-all duration-300 rounded"
+                                >
+                                    REINTENTAR
+                                </button>
+                            </div>
+                        ) : events.length > 0 ? (
+                            events.map((event) => (
                                 <div key={event.id} className="group relative">
                                     <div className="absolute inset-0 bg-gradient-to-r from-neonPurple to-neonPink rounded-2xl blur opacity-0 group-hover:opacity-75 transition-opacity duration-500"></div>
                                     <div className="relative bg-[#0a0a0a] border border-gray-800 hover:border-transparent rounded-2xl overflow-hidden h-full flex flex-col transition-all duration-300 transform group-hover:-translate-y-2">

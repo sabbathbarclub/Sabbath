@@ -11,8 +11,15 @@ try {
     apiUrl = import.meta.env.VITE_API_URL || 'https://sabbath-rhxv.onrender.com/api/';
 }
 
+/** Default timeout (ms) for API requests. Allows cold starts ~90s. */
+export const API_TIMEOUT = 90000;
+
+/** Shorter timeout for keep-alive pings. */
+export const KEEPALIVE_TIMEOUT = 15000;
+
 const api = axios.create({
     baseURL: apiUrl,
+    timeout: API_TIMEOUT,
 });
 
 api.interceptors.request.use(config => {
