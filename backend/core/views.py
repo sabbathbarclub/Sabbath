@@ -125,7 +125,7 @@ def validate_qr(request):
     if str(qr_id_raw).startswith("PROMO:"):
         promo_id = qr_id_raw.split("PROMO:")[1]
         try:
-            ticket = PromoTicket.objects.get(id=promo_id)
+            ticket = PromoTicket.objects.select_related('campaign').get(id=promo_id)
             if ticket.is_used:
                  return Response({'status': 'ALREADY_USED', 'message': 'Promo ya canjeada.'}, status=status.HTTP_400_BAD_REQUEST)
             
@@ -137,7 +137,7 @@ def validate_qr(request):
 
     # Normal Reservation Logic
     try:
-        reservation = Reservation.objects.get(id=qr_id_raw)
+        reservation = Reservation.objects.select_related('event').get(id=qr_id_raw)
         if reservation.is_validated:
              return Response({'status': 'ALREADY_USED', 'message': 'This ticket has already been used.'}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -153,7 +153,29 @@ def validate_qr(request):
 
 from rest_framework.permissions import IsAdminUser, AllowAny
 
-# ... imports ...
+
+@api_view(['GET'])
+@permission_classes([IsAdminUser])
+def staff_dashboard(request):
+    """
+    Combined endpoint for StaffDashboard. Returns events, campaigns, and menus
+    in a single response. Reduces 3 round-trips to 1 on initial load.
+    Response shape matches individual endpoints for drop-in replacement.
+    """
+    events_qs = _events_queryset()
+    campaigns_qs = PromoCampaign.objects.filter(is_active=True).order_by('-created_at')
+    menus_qs = Menu.objects.all().order_by('-created_at')
+
+    events_data = EventSerializer(events_qs, many=True, context={'request': request}).data
+    campaigns_data = PromoCampaignSerializer(campaigns_qs, many=True).data
+    menus_data = MenuSerializer(menus_qs, many=True).data
+
+    return Response({
+        'events': events_data,
+        'campaigns': campaigns_data,
+        'menus': menus_data,
+    })
+
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

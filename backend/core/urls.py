@@ -1,9 +1,26 @@
 from django.urls import path
-from .views import EventList, ReservationCreate, validate_qr, staff_login, toggle_event, toggle_menu, PromoCodeList, MenuList, PromoCampaignList, PromoTicketCreate, PromoCampaignDetail, health_check, serve_dynamic_qr, MenuDetail
-from .views import EventDetail
+from .views import (
+    EventList,
+    EventDetail,
+    ReservationCreate,
+    validate_qr,
+    staff_login,
+    staff_dashboard,
+    toggle_event,
+    toggle_menu,
+    PromoCodeList,
+    MenuList,
+    MenuDetail,
+    PromoCampaignList,
+    PromoCampaignDetail,
+    PromoTicketCreate,
+    health_check,
+    serve_dynamic_qr,
+)
 
 urlpatterns = [
     path("", health_check, name='api-health-check'),
+    path('dashboard/', staff_dashboard, name='staff-dashboard'),
     path('events/', EventList.as_view(), name='event-list'),
     path('events/<int:pk>/', EventDetail.as_view(), name='event-detail'),
     path('reservations/', ReservationCreate.as_view(), name='reservation-create'),

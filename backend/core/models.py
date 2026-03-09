@@ -7,7 +7,7 @@ from django.db import models
 class Event(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
-    date = models.DateTimeField()
+    date = models.DateTimeField(db_index=True)  # Index for order_by('-date')
     image = models.URLField(max_length=500, blank=True, null=True, help_text="Pegar enlace de Google Drive (Debe ser público)")
     capacity = models.PositiveIntegerField(default=100)
     is_active = models.BooleanField(default=True)

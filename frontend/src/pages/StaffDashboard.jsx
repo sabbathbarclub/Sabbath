@@ -11,6 +11,7 @@ const StaffDashboard = () => {
     // 1. STATE DEFINITIONS
     const [activeTab, setActiveTab] = useState('events');
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingData, setIsLoadingData] = useState(true);
 
     // Data State (Initialized to empty arrays to prevent crashes)
     const [menus, setMenus] = useState([]);
@@ -36,9 +37,7 @@ const StaffDashboard = () => {
 
     // 2. EFFECTS (Data Loading)
     useEffect(() => {
-        loadEvents();
-        loadPromos();
-        loadMenus();
+        loadDashboard();
     }, []);
 
     // Notification Timer
@@ -66,6 +65,28 @@ const StaffDashboard = () => {
     const loadEvents = () => api.get('events/').then(res => setEvents(res.data)).catch(console.error);
     const loadPromos = () => api.get('campaigns/').then(res => setPromos(res.data)).catch(console.error);
     const loadMenus = () => api.get('menus/').then(res => setMenus(res.data)).catch(console.error);
+
+    const loadDashboard = () => {
+        setIsLoadingData(true);
+        api.get('dashboard/')
+            .then(res => {
+                setEvents(res.data.events ?? []);
+                setPromos(res.data.campaigns ?? []);
+                setMenus(res.data.menus ?? []);
+            })
+            .catch(() => {
+                Promise.all([
+                    api.get('events/'),
+                    api.get('campaigns/'),
+                    api.get('menus/'),
+                ]).then(([e, c, m]) => {
+                    setEvents(e.data ?? []);
+                    setPromos(c.data ?? []);
+                    setMenus(m.data ?? []);
+                }).catch(console.error);
+            })
+            .finally(() => setIsLoadingData(false));
+    };
 
     const handleCreateEvent = (e) => {
         e.preventDefault();
@@ -194,8 +215,20 @@ const StaffDashboard = () => {
                     </div>
                 </div>
 
+                {/* LOADING SKELETON */}
+                {isLoadingData && (
+                    <div className="grid md:grid-cols-3 gap-8 animate-pulse">
+                        <div className="md:col-span-1 h-80 glass rounded-xl bg-white/5" />
+                        <div className="md:col-span-2 space-y-4">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="h-20 glass rounded-xl bg-white/5" />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* EVENTS TAB */}
-                {activeTab === 'events' && (
+                {!isLoadingData && activeTab === 'events' && (
                     <div className="grid md:grid-cols-3 gap-8">
                         <div className="md:col-span-1">
                             <div className="glass p-6 rounded-xl stuck">
@@ -251,7 +284,7 @@ const StaffDashboard = () => {
                 )}
 
                 {/* PROMOS TAB */}
-                {activeTab === 'promos' && (
+                {!isLoadingData && activeTab === 'promos' && (
                     <div className="grid md:grid-cols-2 gap-8">
                         <div className="glass p-6 rounded-xl h-fit">
                             <h3 className="text-xl font-bold mb-4 text-neonPink">NUEVA CAMPAÑA</h3>
@@ -281,7 +314,7 @@ const StaffDashboard = () => {
                 )}
 
                 {/* CARTA TAB (With Toggle Logic) */}
-                {activeTab === 'carta' && (
+                {!isLoadingData && activeTab === 'carta' && (
                     <div className="max-w-4xl mx-auto space-y-8">
                         <div className="grid gap-4">
                             {Array.isArray(menus) && menus.map(m => (
@@ -306,7 +339,7 @@ const StaffDashboard = () => {
                 )}
 
                 {/* SCANNER TAB */}
-                {activeTab === 'scanner' && (
+                {!isLoadingData && activeTab === 'scanner' && (
                     <div className="max-w-md mx-auto">
                         {!scanResult ? (
                             <div className="glass p-6 rounded-xl">
