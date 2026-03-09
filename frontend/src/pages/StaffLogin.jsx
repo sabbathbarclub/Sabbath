@@ -5,10 +5,13 @@ import api from '../api';
 const StaffLogin = () => {
     const [credentials, setCredentials] = useState({ username: '', password: '' });
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
 
     const handleLogin = (e) => {
         e.preventDefault();
+        setError('');
+        setIsSubmitting(true);
         api.post('staff-login/', credentials)
             .then(res => {
                 localStorage.setItem('token', res.data.token);
@@ -23,7 +26,8 @@ const StaffLogin = () => {
                 } else {
                     setError('Error de conexión con el servidor');
                 }
-            });
+            })
+            .finally(() => setIsSubmitting(false));
     };
 
     return (
@@ -54,8 +58,12 @@ const StaffLogin = () => {
                             onChange={e => setCredentials({ ...credentials, password: e.target.value })}
                         />
                     </div>
-                    <button type="submit" className="w-full py-3 bg-neonPurple text-white font-bold tracking-widest hover:bg-white hover:text-black transition-all rounded shadow-[0_0_15px_rgba(168,85,247,0.4)]">
-                        ENTRAR
+                    <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full py-3 bg-neonPurple text-white font-bold tracking-widest hover:bg-white hover:text-black transition-all rounded shadow-[0_0_15px_rgba(168,85,247,0.4)] disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        {isSubmitting ? 'ENTRANDO...' : 'ENTRAR'}
                     </button>
                     <button type="button" onClick={() => navigate('/')} className="w-full py-3 text-gray-500 hover:text-white text-xs tracking-widest">
                         VOLVER AL INICIO
