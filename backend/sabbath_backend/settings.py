@@ -104,11 +104,11 @@ DATABASES = {
     }
 }
 
-# Reuse DB connections in production (PostgreSQL) to reduce overhead.
-# CONN_MAX_AGE=0 disables pooling for SQLite; use 60s for Postgres on Render.
+# Close DB connection after each request to avoid exceeding free tier limits.
+# CONN_MAX_AGE=0 = close after use; 2 workers × 1 conn each = max 2 connections at once.
 _use_postgres = 'postgresql' in str(os.getenv('DB_ENGINE', ''))
 if _use_postgres:
-    DATABASES["default"]["CONN_MAX_AGE"] = 60
+    DATABASES["default"]["CONN_MAX_AGE"] = 0
 
 
 # Password validation
