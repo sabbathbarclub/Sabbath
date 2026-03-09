@@ -72,7 +72,7 @@ class Reservation(models.Model):
 class PromoCampaign(models.Model):
     title = models.CharField(max_length=200)
     current_benefit = models.CharField(max_length=200, help_text="Ej: '2 Shots Gratis'")
-    instagram_url = models.URLField(default="https://www.instagram.com/sabbath.bar.club?igsh=MXRucnJtcHR0aXNmYg%3D%3D&utm_source=qr")
+    instagram_url = models.URLField(default="https://www.instagram.com/sabbatclub/")
     limit = models.IntegerField(default=100)
     manual_claims = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
